@@ -11,6 +11,8 @@ import (
 )
 
 func TestNewUnverifiedItems(t *testing.T) {
+	t.Parallel()
+
 	// When
 	items := unit.NewUnverifiedItems()
 
@@ -21,6 +23,8 @@ func TestNewUnverifiedItems(t *testing.T) {
 }
 
 func TestUnverifiedItemsAdd(t *testing.T) {
+	t.Parallel()
+
 	// Given
 	unverifiedItems := unit.NewUnverifiedItems()
 
