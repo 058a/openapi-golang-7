@@ -1,6 +1,7 @@
 package unit_test
 
 import (
+	"errors"
 	"openapi/internal/domain/stock/item"
 	"openapi/internal/domain/stock/unit"
 	"reflect"
@@ -38,8 +39,6 @@ func TestUnverifiedItemsAdd(t *testing.T) {
 	}
 	unverifiedItems.Add(newItemId)
 
-	unverifiedItems.Remove(itemId)
-
 	validItems, err := unverifiedItems.Verify()
 	if err != nil {
 		t.Fatal(err)
@@ -54,4 +53,19 @@ func TestUnverifiedItemsAdd(t *testing.T) {
 		t.Errorf("%T %+v want %+v", unverifiedItems, unverifiedItems, validItems)
 	}
 
+}
+
+func TestUnverifiedItemsFailVerify(t *testing.T) {
+	t.Parallel()
+
+	// Given
+	unverifiedItems := unit.NewUnverifiedItems()
+
+	// When
+	_, err := unverifiedItems.Verify()
+
+	// Then
+	if !errors.Is(err, unit.ErrItemsZero) {
+		t.Errorf("%T %+v want %+v", err, err, unit.ErrItemsZero)
+	}
 }

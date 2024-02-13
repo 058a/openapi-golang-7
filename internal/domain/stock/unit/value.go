@@ -13,10 +13,13 @@ type (
 		added   bool
 		deleted bool
 	}
-	Items           map[uuid.UUID]Item
+
+	Items map[uuid.UUID]Item
+
 	UnverifiedItems struct {
 		items Items
 	}
+
 	ValidItems struct {
 		items Items
 	}
@@ -36,15 +39,6 @@ func (o *UnverifiedItems) Add(id item.Id) {
 		Id:      id,
 		added:   true,
 		deleted: false,
-	}
-}
-
-func (o *UnverifiedItems) Remove(id item.Id) {
-	for k, v := range o.items {
-		if v.Id == id {
-			v.deleted = true
-			o.items[k] = v
-		}
 	}
 }
 

@@ -85,7 +85,7 @@
 				
 				<option value="file14">openapi/internal/domain/stock/unit/entity.go (100.0%)</option>
 				
-				<option value="file15">openapi/internal/domain/stock/unit/value.go (93.8%)</option>
+				<option value="file15">openapi/internal/domain/stock/unit/value.go (100.0%)</option>
 				
 				<option value="file16">openapi/internal/infra/repository/sqlboiler/stock/item/repository.go (100.0%)</option>
 				
@@ -632,6 +632,7 @@ func (v Name) String() string <span class="cov8" title="1">{
 
 import (
         "errors"
+        "openapi/internal/domain/stock/item"
         "openapi/internal/domain/stock/location"
 )
 
@@ -640,6 +641,7 @@ type (
                 Id         Id
                 Items      ValidItems
                 LocationId location.Id
+                Deleted    bool
         }
 )
 
@@ -652,20 +654,39 @@ func NewAggregate(id Id, items ValidItems, locationId location.Id) (*Aggregate, 
                 Id:         id,
                 Items:      items,
                 LocationId: locationId,
+                Deleted:    false,
         }, nil
 }</span>
 
-func RestoreAggregate(id Id, items ValidItems, locationId location.Id) (*Aggregate, error) <span class="cov8" title="1">{
+func RestoreAggregate(id Id, items ValidItems, locationId location.Id, deleted bool) (*Aggregate, error) <span class="cov8" title="1">{
         return &amp;Aggregate{
                 Id:         id,
                 Items:      items,
                 LocationId: locationId,
+                Deleted:    deleted,
         }, nil
 }</span>
 
 func (a *Aggregate) ChangeLocation(locationId location.Id) <span class="cov8" title="1">{
         a.LocationId = locationId
 }</span>
+
+func (o *Aggregate) RemoveItem(id item.Id) <span class="cov8" title="1">{
+        itemCount := len(o.Items.Items())
+        for k, v := range o.Items.Items() </span><span class="cov8" title="1">{
+                if v.Id == id </span><span class="cov8" title="1">{
+                        v.deleted = true
+                        o.Items.Items()[k] = v
+                }</span>
+                <span class="cov8" title="1">if v.deleted </span><span class="cov8" title="1">{
+                        itemCount--
+                }</span>
+        }
+
+        <span class="cov8" title="1">if itemCount == 0 </span><span class="cov8" title="1">{
+                o.Deleted = true
+        }</span>
+}
 </pre>
 		
 		<pre class="file" id="file14" style="display: none">package unit
@@ -717,10 +738,13 @@ type (
                 added   bool
                 deleted bool
         }
-        Items           map[uuid.UUID]Item
+
+        Items map[uuid.UUID]Item
+
         UnverifiedItems struct {
                 items Items
         }
+
         ValidItems struct {
                 items Items
         }
@@ -743,17 +767,8 @@ func (o *UnverifiedItems) Add(id item.Id) <span class="cov8" title="1">{
         }
 }</span>
 
-func (o *UnverifiedItems) Remove(id item.Id) <span class="cov8" title="1">{
-        for k, v := range o.items </span><span class="cov8" title="1">{
-                if v.Id == id </span><span class="cov8" title="1">{
-                        v.deleted = true
-                        o.items[k] = v
-                }</span>
-        }
-}
-
 func (o UnverifiedItems) Verify() (ValidItems, error) <span class="cov8" title="1">{
-        if len(o.items) == 0 </span><span class="cov0" title="0">{
+        if len(o.items) == 0 </span><span class="cov8" title="1">{
                 return ValidItems{}, ErrItemsZero
         }</span>
         <span class="cov8" title="1">items := make(Items, len(o.items))
