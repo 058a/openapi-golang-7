@@ -57,31 +57,53 @@
 				
 				<option value="file0">openapi/cmd/main/main.go (0.0%)</option>
 				
-				<option value="file1">openapi/internal/app/stock/location/create.go (100.0%)</option>
+				<option value="file1">openapi/internal/app/stock/item/create.go (100.0%)</option>
 				
-				<option value="file2">openapi/internal/app/stock/location/delete.go (100.0%)</option>
+				<option value="file2">openapi/internal/app/stock/item/delete.go (100.0%)</option>
 				
-				<option value="file3">openapi/internal/app/stock/location/update.go (100.0%)</option>
+				<option value="file3">openapi/internal/app/stock/item/update.go (100.0%)</option>
 				
-				<option value="file4">openapi/internal/domain/stock/location/aggregate.go (100.0%)</option>
+				<option value="file4">openapi/internal/app/stock/location/create.go (100.0%)</option>
 				
-				<option value="file5">openapi/internal/domain/stock/location/entity.go (100.0%)</option>
+				<option value="file5">openapi/internal/app/stock/location/delete.go (100.0%)</option>
 				
-				<option value="file6">openapi/internal/domain/stock/location/value.go (100.0%)</option>
+				<option value="file6">openapi/internal/app/stock/location/update.go (100.0%)</option>
 				
-				<option value="file7">openapi/internal/infra/repository/sqlboiler/stock/location/repository.go (100.0%)</option>
+				<option value="file7">openapi/internal/domain/stock/item/aggregate.go (100.0%)</option>
 				
-				<option value="file8">openapi/internal/ui/hello/get.go (0.0%)</option>
+				<option value="file8">openapi/internal/domain/stock/item/entity.go (100.0%)</option>
 				
-				<option value="file9">openapi/internal/ui/hello/hello.go (0.0%)</option>
+				<option value="file9">openapi/internal/domain/stock/item/value.go (100.0%)</option>
 				
-				<option value="file10">openapi/internal/ui/stock/locations/delete.go (66.7%)</option>
+				<option value="file10">openapi/internal/domain/stock/location/aggregate.go (100.0%)</option>
 				
-				<option value="file11">openapi/internal/ui/stock/locations/locations.go (0.0%)</option>
+				<option value="file11">openapi/internal/domain/stock/location/entity.go (100.0%)</option>
 				
-				<option value="file12">openapi/internal/ui/stock/locations/post.go (73.9%)</option>
+				<option value="file12">openapi/internal/domain/stock/location/value.go (100.0%)</option>
 				
-				<option value="file13">openapi/internal/ui/stock/locations/put.go (75.0%)</option>
+				<option value="file13">openapi/internal/infra/repository/sqlboiler/stock/item/repository.go (100.0%)</option>
+				
+				<option value="file14">openapi/internal/infra/repository/sqlboiler/stock/location/repository.go (100.0%)</option>
+				
+				<option value="file15">openapi/internal/ui/hello/get.go (0.0%)</option>
+				
+				<option value="file16">openapi/internal/ui/hello/hello.go (0.0%)</option>
+				
+				<option value="file17">openapi/internal/ui/stock/items/delete.go (66.7%)</option>
+				
+				<option value="file18">openapi/internal/ui/stock/items/items.go (0.0%)</option>
+				
+				<option value="file19">openapi/internal/ui/stock/items/post.go (73.9%)</option>
+				
+				<option value="file20">openapi/internal/ui/stock/items/put.go (75.0%)</option>
+				
+				<option value="file21">openapi/internal/ui/stock/locations/delete.go (66.7%)</option>
+				
+				<option value="file22">openapi/internal/ui/stock/locations/locations.go (0.0%)</option>
+				
+				<option value="file23">openapi/internal/ui/stock/locations/post.go (73.9%)</option>
+				
+				<option value="file24">openapi/internal/ui/stock/locations/put.go (75.0%)</option>
 				
 				</select>
 			</div>
@@ -103,8 +125,9 @@ import (
         "github.com/labstack/echo/v4"
         "github.com/labstack/echo/v4/middleware"
 
-        hello "openapi/internal/ui/hello"
-        locations "openapi/internal/ui/stock/locations"
+        "openapi/internal/ui/hello"
+        "openapi/internal/ui/stock/items"
+        "openapi/internal/ui/stock/locations"
 )
 
 func main() <span class="cov0" title="0">{
@@ -112,16 +135,163 @@ func main() <span class="cov0" title="0">{
 
         e.Use(middleware.Logger())
         e.Use(middleware.Recover())
-        
+
         e.Validator = validator.NewCustomValidator()
 
         hello.RegisterHandlers(e)
         locations.RegisterHandlers(e)
+        items.RegisterHandlers(e)
 
         e.Logger.Fatal(e.Start(":1323"))
-}</pre>
+}</span>
+</pre>
 		
-		<pre class="file" id="file1" style="display: none">package location
+		<pre class="file" id="file1" style="display: none">package item
+
+import (
+        "github.com/google/uuid"
+
+        "openapi/internal/domain/stock/item"
+)
+
+type (
+        createRequest struct {
+                Name item.Name
+        }
+        createResponse struct {
+                Id uuid.UUID
+        }
+)
+
+func NewCreateRequest(name string) (createRequest, error) <span class="cov8" title="1">{
+        // validation
+        validName, err := item.NewName(name)
+        if err != nil </span><span class="cov8" title="1">{
+                return createRequest{}, err
+        }</span>
+
+        // post processing
+        <span class="cov8" title="1">return createRequest{
+                Name: validName,
+        }, nil</span>
+}
+
+func newCreateResponse(id item.Id, name item.Name) createResponse <span class="cov8" title="1">{
+        return createResponse{
+                Id: id.UUID(),
+        }
+}</span>
+
+func Create(req createRequest, r item.IRepository, newId uuid.UUID) (createResponse, error) <span class="cov8" title="1">{
+        id, err := item.NewId(newId)
+        if err != nil </span><span class="cov8" title="1">{
+                return createResponse{}, err
+        }</span>
+
+        <span class="cov8" title="1">a := item.NewAggregate(id, req.Name)
+
+        if err := r.Save(a); err != nil </span><span class="cov8" title="1">{
+                return createResponse{}, err
+        }</span>
+
+        <span class="cov8" title="1">res := newCreateResponse(a.Id, a.Name)
+        return res, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package item
+
+import (
+        "openapi/internal/domain/stock/item"
+
+        "github.com/google/uuid"
+)
+
+type deleteRequest struct {
+        Id item.Id
+}
+
+func NewDeleteRequest(id uuid.UUID) (deleteRequest, error) <span class="cov8" title="1">{
+        // validation
+        validId, err := item.NewId(id)
+        if err != nil </span><span class="cov8" title="1">{
+                return deleteRequest{}, err
+        }</span>
+
+        // post processing
+        <span class="cov8" title="1">return deleteRequest{
+                Id: validId,
+        }, nil</span>
+}
+
+func Delete(req deleteRequest, r item.IRepository) error <span class="cov8" title="1">{
+        a, err := r.Get(req.Id)
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">a.Delete()
+
+        err = r.Save(a)
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package item
+
+import (
+        "openapi/internal/domain/stock/item"
+
+        "github.com/google/uuid"
+)
+
+type updateRequest struct {
+        Id   item.Id
+        Name item.Name
+}
+
+func NewUpdateRequest(id uuid.UUID, name string) (updateRequest, error) <span class="cov8" title="1">{
+        // validation
+        validId, err := item.NewId(id)
+        if err != nil </span><span class="cov8" title="1">{
+                return updateRequest{}, err
+        }</span>
+
+        <span class="cov8" title="1">validName, err := item.NewName(name)
+        if err != nil </span><span class="cov8" title="1">{
+                return updateRequest{}, err
+        }</span>
+
+        // post processing
+        <span class="cov8" title="1">return updateRequest{
+                Id:   validId,
+                Name: validName,
+        }, nil</span>
+}
+
+func Update(req updateRequest, r item.IRepository) error <span class="cov8" title="1">{
+        id := item.Id(req.Id)
+        a, err := r.Get(id)
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">a.Name = req.Name
+
+        err = r.Save(a)
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package location
 
 import (
         "github.com/google/uuid"
@@ -173,7 +343,7 @@ func Create(req createRequest, r location.IRepository, newId uuid.UUID) (createR
         return res, nil</span>
 }</pre>
 		
-		<pre class="file" id="file2" style="display: none">package location
+		<pre class="file" id="file5" style="display: none">package location
 
 import (
         "openapi/internal/domain/stock/location"
@@ -214,7 +384,7 @@ func Delete(req deleteRequest, r location.IRepository) error <span class="cov8" 
         <span class="cov8" title="1">return nil</span>
 }</pre>
 		
-		<pre class="file" id="file3" style="display: none">package location
+		<pre class="file" id="file6" style="display: none">package location
 
 import (
         "openapi/internal/domain/stock/location"
@@ -263,7 +433,103 @@ func Update(req updateRequest, r location.IRepository) error <span class="cov8" 
         <span class="cov8" title="1">return nil</span>
 }</pre>
 		
-		<pre class="file" id="file4" style="display: none">package location
+		<pre class="file" id="file7" style="display: none">package item
+
+type (
+        Aggregate struct {
+                Id      Id
+                Name    Name
+                deleted bool
+        }
+)
+
+func NewAggregate(id Id, name Name) *Aggregate <span class="cov8" title="1">{
+        return &amp;Aggregate{
+                Id:      id,
+                Name:    name,
+                deleted: false,
+        }
+}</span>
+
+func RestoreAggregate(id Id, name Name, deleted bool) *Aggregate <span class="cov8" title="1">{
+        return &amp;Aggregate{
+                Id:      id,
+                Name:    name,
+                deleted: deleted,
+        }
+}</span>
+
+func (a Aggregate) IsDeleted() bool <span class="cov8" title="1">{
+        return a.deleted
+}</span>
+
+func (a *Aggregate) Delete() <span class="cov8" title="1">{
+        a.deleted = true
+}</span>
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">package item
+
+import (
+        "github.com/friendsofgo/errors"
+        "github.com/google/uuid"
+)
+
+type (
+        Id struct {
+                value uuid.UUID
+        }
+)
+
+var (
+        ErrInvalidId = errors.New("invalid id")
+)
+
+func NewId(v uuid.UUID) (Id, error) <span class="cov8" title="1">{
+        if v == uuid.Nil </span><span class="cov8" title="1">{
+                return Id{}, ErrInvalidId
+        }</span>
+        <span class="cov8" title="1">return Id{v}, nil</span>
+}
+
+func (v Id) UUID() uuid.UUID <span class="cov8" title="1">{
+        return v.value
+}</span>
+
+func (v Id) String() string <span class="cov8" title="1">{
+        return v.value.String()
+}</span>
+</pre>
+		
+		<pre class="file" id="file9" style="display: none">package item
+
+import (
+        "errors"
+)
+
+type (
+        Name struct {
+                string
+        }
+)
+
+var (
+        ErrInvalidName = errors.New("invalid name")
+)
+
+func NewName(v string) (Name, error) <span class="cov8" title="1">{
+        if v == "" </span><span class="cov8" title="1">{
+                return Name{}, ErrInvalidName
+        }</span>
+        <span class="cov8" title="1">return Name{v}, nil</span>
+}
+
+func (v Name) String() string <span class="cov8" title="1">{
+        return v.string
+}</span>
+</pre>
+		
+		<pre class="file" id="file10" style="display: none">package location
 
 type(
         Aggregate struct {
@@ -297,7 +563,7 @@ func (a *Aggregate) Delete() <span class="cov8" title="1">{
         a.deleted = true
 }</pre>
 		
-		<pre class="file" id="file5" style="display: none">package location
+		<pre class="file" id="file11" style="display: none">package location
 
 import (
         "github.com/friendsofgo/errors"
@@ -329,7 +595,7 @@ func (v Id) String() string <span class="cov8" title="1">{
         return v.value.String()
 }</pre>
 		
-		<pre class="file" id="file6" style="display: none">package location
+		<pre class="file" id="file12" style="display: none">package location
 
 import (
         "errors"
@@ -356,7 +622,101 @@ func (v Name) String() string <span class="cov8" title="1">{
         return v.string
 }</pre>
 		
-		<pre class="file" id="file7" style="display: none">package location
+		<pre class="file" id="file13" style="display: none">package item
+
+import (
+        "context"
+        "database/sql"
+        "errors"
+        "openapi/internal/infra/sqlboiler"
+
+        "github.com/volatiletech/sqlboiler/v4/boil"
+
+        "openapi/internal/domain/stock/item"
+)
+
+type (
+        Repository struct {
+                item.IRepository
+                db *sql.DB
+        }
+)
+
+var (
+        ErrDbEmpty    = errors.New("db is empty")
+        ErrRowDeleted = errors.New("row deleted")
+)
+
+func NewRepository(db *sql.DB) (*Repository, error) <span class="cov8" title="1">{
+        if db == nil </span><span class="cov8" title="1">{
+                return nil, ErrDbEmpty
+        }</span>
+        <span class="cov8" title="1">return &amp;Repository{
+                db: db,
+        }, nil</span>
+}
+
+func (r *Repository) Save(a *item.Aggregate) error <span class="cov8" title="1">{
+        data := &amp;sqlboiler.StockItem{
+                ID:      a.Id.String(),
+                Name:    a.Name.String(),
+                Deleted: a.IsDeleted(),
+        }
+
+        err := data.Upsert(
+                context.Background(),
+                r.db,
+                true,
+                []string{"id"},
+                boil.Whitelist("name", "deleted"),
+                boil.Infer(),
+        )
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+
+func (r *Repository) Get(id item.Id) (*item.Aggregate, error) <span class="cov8" title="1">{
+        data, err := sqlboiler.FindStockItem(context.Background(), r.db, id.UUID().String())
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">if data.Deleted </span><span class="cov8" title="1">{
+                return nil, ErrRowDeleted
+        }</span>
+
+        <span class="cov8" title="1">name, err := item.NewName(data.Name)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">a := item.RestoreAggregate(id, name, data.Deleted)
+
+        return a, nil</span>
+}
+
+func (r *Repository) Find(id item.Id) (bool, error) <span class="cov8" title="1">{
+        data, err := sqlboiler.FindStockItem(context.Background(), r.db, id.UUID().String())
+        if err != nil &amp;&amp; err != sql.ErrNoRows </span><span class="cov8" title="1">{
+                return false, err
+        }</span>
+
+        <span class="cov8" title="1">if err == sql.ErrNoRows </span><span class="cov8" title="1">{
+                return false, nil
+        }</span>
+
+        <span class="cov8" title="1">if data.Deleted </span><span class="cov8" title="1">{
+                return false, nil
+        }</span>
+
+        <span class="cov8" title="1">return true, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file14" style="display: none">package location
 
 import (
         "context"
@@ -450,7 +810,7 @@ func (r *Repository) Find(id location.Id) (bool, error) <span class="cov8" title
         <span class="cov8" title="1">return true, nil</span>
 }</pre>
 		
-		<pre class="file" id="file8" style="display: none">package hello
+		<pre class="file" id="file15" style="display: none">package hello
 
 import (
         "net/http"
@@ -469,7 +829,7 @@ func (Api) GetHello(ctx echo.Context) error <span class="cov0" title="0">{
         })
 }</pre>
 		
-		<pre class="file" id="file9" style="display: none">package hello
+		<pre class="file" id="file16" style="display: none">package hello
 
 import (
         oapicodegen "openapi/internal/infra/oapicodegen/hello"
@@ -486,7 +846,202 @@ func RegisterHandlers(e *echo.Echo) <span class="cov0" title="0">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file10" style="display: none">package locations
+		<pre class="file" id="file17" style="display: none">package items
+
+import (
+        "net/http"
+
+        "github.com/labstack/echo/v4"
+
+        app "openapi/internal/app/stock/item"
+        "openapi/internal/infra/database"
+        infra "openapi/internal/infra/repository/sqlboiler/stock/item"
+
+        openapi_types "github.com/oapi-codegen/runtime/types"
+)
+
+// Delete is a function that handles the HTTP DELETE request for deleting an existing stock item.
+func (Api) DeleteStockItem(ctx echo.Context, stockItemId openapi_types.UUID) error <span class="cov8" title="1">{
+        // Precondition
+        db, err := database.Open()
+        if err != nil </span><span class="cov0" title="0">{
+                return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+        }</span>
+        <span class="cov8" title="1">defer db.Close()
+
+        repo, err := infra.NewRepository(db)
+        if err != nil </span><span class="cov0" title="0">{
+                return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+        }</span>
+
+        // Validation
+        <span class="cov8" title="1">reqDto, err := app.NewDeleteRequest(stockItemId)
+        if err != nil </span><span class="cov0" title="0">{
+                return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+        }</span>
+
+        <span class="cov8" title="1">found, err := repo.Find(reqDto.Id)
+        if err != nil </span><span class="cov0" title="0">{
+                return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+        }</span>
+        <span class="cov8" title="1">if !found </span><span class="cov0" title="0">{
+                return echo.NewHTTPError(http.StatusNotFound, "stock item not found")
+        }</span>
+
+        // Main
+        <span class="cov8" title="1">if err := app.Delete(reqDto, repo); err != nil </span><span class="cov0" title="0">{
+                return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+        }</span>
+
+        // Postcondition
+        <span class="cov8" title="1">return ctx.JSON(http.StatusOK, nil)</span>
+}
+</pre>
+		
+		<pre class="file" id="file18" style="display: none">package items
+
+import (
+        oapicodegen "openapi/internal/infra/oapicodegen/stock/item"
+
+        "github.com/labstack/echo/v4"
+)
+
+type Api struct {
+        oapicodegen.ServerInterface
+}
+
+func RegisterHandlers(e *echo.Echo) <span class="cov0" title="0">{
+        oapicodegen.RegisterHandlers(e, &amp;Api{})
+}</span>
+</pre>
+		
+		<pre class="file" id="file19" style="display: none">package items
+
+import (
+        "net/http"
+
+        "github.com/google/uuid"
+        "github.com/labstack/echo/v4"
+
+        app "openapi/internal/app/stock/item"
+        "openapi/internal/infra/database"
+        oapicodegen "openapi/internal/infra/oapicodegen/stock/item"
+        infra "openapi/internal/infra/repository/sqlboiler/stock/item"
+)
+
+// PostStockItem is a function that handles the HTTP POST request for creating a new stock item.
+func (Api) PostStockItem(ctx echo.Context) error <span class="cov8" title="1">{
+        // Precondition
+        db, err := database.Open()
+        if err != nil </span><span class="cov0" title="0">{
+                return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+        }</span>
+        <span class="cov8" title="1">defer db.Close()
+
+        repo, err := infra.NewRepository(db)
+        if err != nil </span><span class="cov0" title="0">{
+                return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+        }</span>
+
+        // Binding
+        <span class="cov8" title="1">req := &amp;oapicodegen.PostStockItemJSONRequestBody{}
+        if err := ctx.Bind(&amp;req); err != nil </span><span class="cov0" title="0">{
+                return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+        }</span>
+
+        // Validation
+        <span class="cov8" title="1">if err := ctx.Validate(req); err != nil </span><span class="cov8" title="1">{
+                return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+        }</span>
+
+        <span class="cov8" title="1">reqDto, err := app.NewCreateRequest(req.Name)
+        if err != nil </span><span class="cov0" title="0">{
+                return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+        }</span>
+
+        // Main Process
+        <span class="cov8" title="1">newId := uuid.New()
+        resDto, err := app.Create(reqDto, repo, newId)
+        if err != nil </span><span class="cov0" title="0">{
+                return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+        }</span>
+
+        <span class="cov8" title="1">res := &amp;oapicodegen.Created{Id: resDto.Id}
+
+        // Postcondition
+        if err := ctx.Validate(res); err != nil </span><span class="cov0" title="0">{
+                return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+        }</span>
+
+        <span class="cov8" title="1">return ctx.JSON(http.StatusCreated, res)</span>
+}
+</pre>
+		
+		<pre class="file" id="file20" style="display: none">package items
+
+import (
+        "net/http"
+
+        "github.com/labstack/echo/v4"
+
+        app "openapi/internal/app/stock/item"
+        "openapi/internal/infra/database"
+        oapicodegen "openapi/internal/infra/oapicodegen/stock/item"
+        infra "openapi/internal/infra/repository/sqlboiler/stock/item"
+
+        openapi_types "github.com/oapi-codegen/runtime/types"
+)
+
+// Put is a function that handles the HTTP PUT request for updating an existing stock item.
+func (Api) PutStockItem(ctx echo.Context, stockItemId openapi_types.UUID) error <span class="cov8" title="1">{
+        // Precondition
+        db, err := database.Open()
+        if err != nil </span><span class="cov0" title="0">{
+                return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+        }</span>
+        <span class="cov8" title="1">defer db.Close()
+
+        repo, err := infra.NewRepository(db)
+        if err != nil </span><span class="cov0" title="0">{
+                return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+        }</span>
+
+        // Binding
+        <span class="cov8" title="1">req := &amp;oapicodegen.PutStockItemJSONRequestBody{}
+        if err := ctx.Bind(&amp;req); err != nil </span><span class="cov0" title="0">{
+                return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+        }</span>
+
+        // Validation
+        <span class="cov8" title="1">if err := ctx.Validate(req); err != nil </span><span class="cov8" title="1">{
+                return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+        }</span>
+
+        <span class="cov8" title="1">reqDto, err := app.NewUpdateRequest(stockItemId, req.Name)
+        if err != nil </span><span class="cov0" title="0">{
+                return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+        }</span>
+
+        <span class="cov8" title="1">found, err := repo.Find(reqDto.Id)
+        if err != nil </span><span class="cov0" title="0">{
+                return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+        }</span>
+        <span class="cov8" title="1">if !found </span><span class="cov8" title="1">{
+                return echo.NewHTTPError(http.StatusNotFound, "stock item not found")
+        }</span>
+
+        // Main
+        <span class="cov8" title="1">err = app.Update(reqDto, repo)
+        if err != nil </span><span class="cov0" title="0">{
+                return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+        }</span>
+
+        // Postcondition
+        <span class="cov8" title="1">return ctx.JSON(http.StatusOK, nil)</span>
+}
+</pre>
+		
+		<pre class="file" id="file21" style="display: none">package locations
 
 import (
         "net/http"
@@ -537,7 +1092,7 @@ func (Api) DeleteStockLocation(ctx echo.Context, stockLocationId openapi_types.U
         <span class="cov8" title="1">return ctx.JSON(http.StatusOK, nil)</span>
 }</pre>
 		
-		<pre class="file" id="file11" style="display: none">package locations
+		<pre class="file" id="file22" style="display: none">package locations
 
 import (
         oapicodegen "openapi/internal/infra/oapicodegen/stock/location"
@@ -554,7 +1109,7 @@ func RegisterHandlers(e *echo.Echo) <span class="cov0" title="0">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file12" style="display: none">package locations
+		<pre class="file" id="file23" style="display: none">package locations
 
 import (
         "net/http"
@@ -615,7 +1170,7 @@ func (Api) PostStockLocation(ctx echo.Context) error <span class="cov8" title="1
         <span class="cov8" title="1">return ctx.JSON(http.StatusCreated, res)</span>
 }</pre>
 		
-		<pre class="file" id="file13" style="display: none">package locations
+		<pre class="file" id="file24" style="display: none">package locations
 
 import (
         "net/http"

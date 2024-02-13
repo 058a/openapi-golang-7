@@ -6,8 +6,9 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 
-	hello "openapi/internal/ui/hello"
-	locations "openapi/internal/ui/stock/locations"
+	"openapi/internal/ui/hello"
+	"openapi/internal/ui/stock/items"
+	"openapi/internal/ui/stock/locations"
 )
 
 func main() {
@@ -15,11 +16,12 @@ func main() {
 
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
-	
+
 	e.Validator = validator.NewCustomValidator()
 
 	hello.RegisterHandlers(e)
 	locations.RegisterHandlers(e)
+	items.RegisterHandlers(e)
 
 	e.Logger.Fatal(e.Start(":1323"))
 }
