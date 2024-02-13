@@ -81,29 +81,35 @@
 				
 				<option value="file12">openapi/internal/domain/stock/location/value.go (100.0%)</option>
 				
-				<option value="file13">openapi/internal/infra/repository/sqlboiler/stock/item/repository.go (100.0%)</option>
+				<option value="file13">openapi/internal/domain/stock/unit/aggregate.go (100.0%)</option>
 				
-				<option value="file14">openapi/internal/infra/repository/sqlboiler/stock/location/repository.go (100.0%)</option>
+				<option value="file14">openapi/internal/domain/stock/unit/entity.go (100.0%)</option>
 				
-				<option value="file15">openapi/internal/ui/hello/get.go (0.0%)</option>
+				<option value="file15">openapi/internal/domain/stock/unit/value.go (93.8%)</option>
 				
-				<option value="file16">openapi/internal/ui/hello/hello.go (0.0%)</option>
+				<option value="file16">openapi/internal/infra/repository/sqlboiler/stock/item/repository.go (100.0%)</option>
 				
-				<option value="file17">openapi/internal/ui/stock/items/delete.go (66.7%)</option>
+				<option value="file17">openapi/internal/infra/repository/sqlboiler/stock/location/repository.go (100.0%)</option>
 				
-				<option value="file18">openapi/internal/ui/stock/items/items.go (0.0%)</option>
+				<option value="file18">openapi/internal/ui/hello/get.go (0.0%)</option>
 				
-				<option value="file19">openapi/internal/ui/stock/items/post.go (73.9%)</option>
+				<option value="file19">openapi/internal/ui/hello/hello.go (0.0%)</option>
 				
-				<option value="file20">openapi/internal/ui/stock/items/put.go (75.0%)</option>
+				<option value="file20">openapi/internal/ui/stock/items/delete.go (66.7%)</option>
 				
-				<option value="file21">openapi/internal/ui/stock/locations/delete.go (66.7%)</option>
+				<option value="file21">openapi/internal/ui/stock/items/items.go (0.0%)</option>
 				
-				<option value="file22">openapi/internal/ui/stock/locations/locations.go (0.0%)</option>
+				<option value="file22">openapi/internal/ui/stock/items/post.go (73.9%)</option>
 				
-				<option value="file23">openapi/internal/ui/stock/locations/post.go (73.9%)</option>
+				<option value="file23">openapi/internal/ui/stock/items/put.go (75.0%)</option>
 				
-				<option value="file24">openapi/internal/ui/stock/locations/put.go (75.0%)</option>
+				<option value="file24">openapi/internal/ui/stock/locations/delete.go (66.7%)</option>
+				
+				<option value="file25">openapi/internal/ui/stock/locations/locations.go (0.0%)</option>
+				
+				<option value="file26">openapi/internal/ui/stock/locations/post.go (73.9%)</option>
+				
+				<option value="file27">openapi/internal/ui/stock/locations/put.go (75.0%)</option>
 				
 				</select>
 			</div>
@@ -622,7 +628,155 @@ func (v Name) String() string <span class="cov8" title="1">{
         return v.string
 }</pre>
 		
-		<pre class="file" id="file13" style="display: none">package item
+		<pre class="file" id="file13" style="display: none">package unit
+
+import (
+        "errors"
+        "openapi/internal/domain/stock/location"
+)
+
+type (
+        Aggregate struct {
+                Id         Id
+                Items      ValidItems
+                LocationId location.Id
+        }
+)
+
+var (
+        ErrZeroItems = errors.New("zero items")
+)
+
+func NewAggregate(id Id, items ValidItems, locationId location.Id) (*Aggregate, error) <span class="cov8" title="1">{
+        return &amp;Aggregate{
+                Id:         id,
+                Items:      items,
+                LocationId: locationId,
+        }, nil
+}</span>
+
+func RestoreAggregate(id Id, items ValidItems, locationId location.Id) (*Aggregate, error) <span class="cov8" title="1">{
+        return &amp;Aggregate{
+                Id:         id,
+                Items:      items,
+                LocationId: locationId,
+        }, nil
+}</span>
+
+func (a *Aggregate) ChangeLocation(locationId location.Id) <span class="cov8" title="1">{
+        a.LocationId = locationId
+}</span>
+</pre>
+		
+		<pre class="file" id="file14" style="display: none">package unit
+
+import (
+        "errors"
+
+        "github.com/google/uuid"
+)
+
+type (
+        Id struct {
+                value uuid.UUID
+        }
+)
+
+var (
+        ErrInvalidId = errors.New("invalid id")
+)
+
+func NewId(v uuid.UUID) (Id, error) <span class="cov8" title="1">{
+        if v == uuid.Nil </span><span class="cov8" title="1">{
+                return Id{}, ErrInvalidId
+        }</span>
+        <span class="cov8" title="1">return Id{v}, nil</span>
+}
+
+func (v Id) UUID() uuid.UUID <span class="cov8" title="1">{
+        return v.value
+}</span>
+
+func (v Id) String() string <span class="cov8" title="1">{
+        return v.value.String()
+}</span>
+</pre>
+		
+		<pre class="file" id="file15" style="display: none">package unit
+
+import (
+        "errors"
+        "openapi/internal/domain/stock/item"
+
+        "github.com/google/uuid"
+)
+
+type (
+        Item struct {
+                Id      item.Id
+                added   bool
+                deleted bool
+        }
+        Items           map[uuid.UUID]Item
+        UnverifiedItems struct {
+                items Items
+        }
+        ValidItems struct {
+                items Items
+        }
+)
+
+var (
+        ErrItemsZero = errors.New("zero items")
+)
+
+func NewUnverifiedItems() UnverifiedItems <span class="cov8" title="1">{
+        items := make(Items)
+        return UnverifiedItems{items}
+}</span>
+
+func (o *UnverifiedItems) Add(id item.Id) <span class="cov8" title="1">{
+        o.items[id.UUID()] = Item{
+                Id:      id,
+                added:   true,
+                deleted: false,
+        }
+}</span>
+
+func (o *UnverifiedItems) Remove(id item.Id) <span class="cov8" title="1">{
+        for k, v := range o.items </span><span class="cov8" title="1">{
+                if v.Id == id </span><span class="cov8" title="1">{
+                        v.deleted = true
+                        o.items[k] = v
+                }</span>
+        }
+}
+
+func (o UnverifiedItems) Verify() (ValidItems, error) <span class="cov8" title="1">{
+        if len(o.items) == 0 </span><span class="cov0" title="0">{
+                return ValidItems{}, ErrItemsZero
+        }</span>
+        <span class="cov8" title="1">items := make(Items, len(o.items))
+        for k, v := range o.items </span><span class="cov8" title="1">{
+                items[k] = v
+        }</span>
+        <span class="cov8" title="1">return ValidItems{items}, nil</span>
+}
+
+func (o UnverifiedItems) Count() int <span class="cov8" title="1">{
+        return len(o.items)
+}</span>
+
+func (o UnverifiedItems) Items() Items <span class="cov8" title="1">{
+        return o.items
+}</span>
+
+func (o ValidItems) Items() Items <span class="cov8" title="1">{
+        return o.items
+}</span>
+</pre>
+		
+		<pre class="file" id="file16" style="display: none">package item
 
 import (
         "context"
@@ -716,7 +870,7 @@ func (r *Repository) Find(id item.Id) (bool, error) <span class="cov8" title="1"
 }
 </pre>
 		
-		<pre class="file" id="file14" style="display: none">package location
+		<pre class="file" id="file17" style="display: none">package location
 
 import (
         "context"
@@ -810,7 +964,7 @@ func (r *Repository) Find(id location.Id) (bool, error) <span class="cov8" title
         <span class="cov8" title="1">return true, nil</span>
 }</pre>
 		
-		<pre class="file" id="file15" style="display: none">package hello
+		<pre class="file" id="file18" style="display: none">package hello
 
 import (
         "net/http"
@@ -829,7 +983,7 @@ func (Api) GetHello(ctx echo.Context) error <span class="cov0" title="0">{
         })
 }</pre>
 		
-		<pre class="file" id="file16" style="display: none">package hello
+		<pre class="file" id="file19" style="display: none">package hello
 
 import (
         oapicodegen "openapi/internal/infra/oapicodegen/hello"
@@ -846,7 +1000,7 @@ func RegisterHandlers(e *echo.Echo) <span class="cov0" title="0">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file17" style="display: none">package items
+		<pre class="file" id="file20" style="display: none">package items
 
 import (
         "net/http"
@@ -898,7 +1052,7 @@ func (Api) DeleteStockItem(ctx echo.Context, stockItemId openapi_types.UUID) err
 }
 </pre>
 		
-		<pre class="file" id="file18" style="display: none">package items
+		<pre class="file" id="file21" style="display: none">package items
 
 import (
         oapicodegen "openapi/internal/infra/oapicodegen/stock/item"
@@ -915,7 +1069,7 @@ func RegisterHandlers(e *echo.Echo) <span class="cov0" title="0">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file19" style="display: none">package items
+		<pre class="file" id="file22" style="display: none">package items
 
 import (
         "net/http"
@@ -977,7 +1131,7 @@ func (Api) PostStockItem(ctx echo.Context) error <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file20" style="display: none">package items
+		<pre class="file" id="file23" style="display: none">package items
 
 import (
         "net/http"
@@ -1041,7 +1195,7 @@ func (Api) PutStockItem(ctx echo.Context, stockItemId openapi_types.UUID) error 
 }
 </pre>
 		
-		<pre class="file" id="file21" style="display: none">package locations
+		<pre class="file" id="file24" style="display: none">package locations
 
 import (
         "net/http"
@@ -1092,7 +1246,7 @@ func (Api) DeleteStockLocation(ctx echo.Context, stockLocationId openapi_types.U
         <span class="cov8" title="1">return ctx.JSON(http.StatusOK, nil)</span>
 }</pre>
 		
-		<pre class="file" id="file22" style="display: none">package locations
+		<pre class="file" id="file25" style="display: none">package locations
 
 import (
         oapicodegen "openapi/internal/infra/oapicodegen/stock/location"
@@ -1109,7 +1263,7 @@ func RegisterHandlers(e *echo.Echo) <span class="cov0" title="0">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file23" style="display: none">package locations
+		<pre class="file" id="file26" style="display: none">package locations
 
 import (
         "net/http"
@@ -1170,7 +1324,7 @@ func (Api) PostStockLocation(ctx echo.Context) error <span class="cov8" title="1
         <span class="cov8" title="1">return ctx.JSON(http.StatusCreated, res)</span>
 }</pre>
 		
-		<pre class="file" id="file24" style="display: none">package locations
+		<pre class="file" id="file27" style="display: none">package locations
 
 import (
         "net/http"
